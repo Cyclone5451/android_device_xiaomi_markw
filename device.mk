@@ -183,16 +183,15 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     fstab.qcom \
     init.qcom.rc \
-    init.target.rc \
-    ueventd.qcom.rc \
     init.qcom.sh \
-    init.class_main.sh \
-    init.mdm.sh \
-    init.qcom.class_core.sh \
-    init.qcom.early_boot.sh \
-    init.qcom.factory.rc \
-    init.qcom.sensors.sh \
-    init.qcom.syspart_fixup.sh \
+    init.qcom.usb.rc \
+    init.qcom.usb.sh \
+    init.target.rc \
+    ueventd.qcom.rc
+
+# Sensors
+PRODUCT_PACKAGES += \
+    sensors.msm8953
 
 # RIL
 PRODUCT_PACKAGES += \

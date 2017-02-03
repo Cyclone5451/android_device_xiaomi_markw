@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# Copyright (c) 2012, The Linux Foundation. All rights reserved.
+# Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -26,54 +26,23 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-target="$1"
-serial="$2"
-
-# No path is set up at this point so we have to do it here.
-PATH=/sbin:/system/sbin:/system/bin:/system/xbin
-export PATH
-
-mount_needed=false;
-
-if [ ! -f /system/etc/boot_fixup ];then
-# This should be the first command
-# remount system as read-write.
-  mount -o rw,remount,barrier=1 /system
-  mount_needed=true;
+#
+# Make modem config folder and copy firmware config to that folder for RIL
+#
+if [ -f /data/misc/radio/ver_info.txt ]; then
+    prev_version_info=`cat /data/misc/radio/ver_info.txt`
+else
+    prev_version_info=""
 fi
 
-# **** WARNING *****
-# This runs in a single-threaded, critical path portion
-# of the Android bootup sequence.  This is to guarantee
-# all necessary system partition fixups are done before
-# the rest of the system starts up.  Run any non-
-# timing critical tasks in a separate process to
-# prevent slowdown at boot.
-
-# Run modem link script
-if [ -f /system/etc/init.qcom.modem_links.sh ]; then
-  /system/bin/sh /system/etc/init.qcom.modem_links.sh
+cur_version_info=`cat /firmware/verinfo/ver_info.txt`
+if [ ! -f /firmware/verinfo/ver_info.txt -o "$prev_version_info" != "$cur_version_info" ]; then
+    rm -rf /data/misc/radio/modem_config
+    mkdir /data/misc/radio/modem_config
+    chmod 770 /data/misc/radio/modem_config
+    cp -r /firmware/image/modem_pr/mcfg/configs/* /data/misc/radio/modem_config
+    chown -hR radio.radio /data/misc/radio/modem_config
+    cp /firmware/verinfo/ver_info.txt /data/misc/radio/ver_info.txt
+    chown radio.radio /data/misc/radio/ver_info.txt
 fi
-
-# Run mdm link script
-if [ -f /system/etc/init.qcom.mdm_links.sh ]; then
-  /system/bin/sh /system/etc/init.qcom.mdm_links.sh
-fi
-
-# Run wifi script
-if [ -f /system/etc/init.qcom.wifi.sh ]; then
-  /system/bin/sh /system/etc/init.qcom.wifi.sh "$target" "$serial"
-fi
-
-# Run the sensor script
-if [ -f /system/etc/init.qcom.sensor.sh ]; then
-  /system/bin/sh /system/etc/init.qcom.sensor.sh
-fi
-
-touch /system/etc/boot_fixup
-
-if $mount_needed ;then
-# This should be the last command
-# remount system as read-only.
-  mount -o ro,remount,barrier=1 /system
-fi
+echo 1 > /data/misc/radio/copy_complete
