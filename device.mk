@@ -122,7 +122,7 @@ PRODUCT_PACKAGES += \
 
 # GPS
 PRODUCT_PACKAGES += \
-    gps.default \
+    gps.msm8953 \
     libcurl
 
 PRODUCT_BOOT_JARS += \
